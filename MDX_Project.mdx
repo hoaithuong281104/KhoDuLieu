@@ -1,0 +1,52 @@
+﻿// Tính tổng Misc charge của tháng 8 năm 2021
+select
+	[Measures].[Misc Charge] on columns,
+	[Dim Time].[Month].[Month].[8] on rows
+from [Olap GK]
+where ([Dim Time].[Year].&[2021]);
+//Tính tổng Misc charge và Ride charge của năm 2024
+select 
+	{[Measures].[Misc Charge], [Measures].[Ride Charge]} on columns,
+	[Dim Time].[Year].&[2024] on rows
+from [Olap GK];
+// Lấy chi phí theo tháng trong năm 2024
+select
+	{[Measures].[Ride Charge], [Measures].[Misc Charge]} on columns,
+	[Dim Time].[Month].[Month] on rows
+from [Olap GK]
+where ([Dim Time].[Year].&[2024]);
+//Tìm 5 điểm đến có số chuyến đi nhiều nhất trong năm 2023
+SELECT 
+    {[Measures].[Fact Ride Count]} ON COLUMNS, 
+    TOPCOUNT([Dim Location].[Destination].[Destination], 5, [Measures].[Fact Ride Count]) ON ROWS
+FROM [Olap GK]
+WHERE ([Dim Time].[Year].&[2023]);
+
+//Tính số chuyến đi (Fact Ride Count) theo ngày trong tháng 8 năm 2024
+select 
+	{[Measures].[Fact Ride Count]} on columns,
+	[Dim Time].[Date].[Date] on rows
+from [Olap GK]
+where ([Dim Time].[Year].&[2024], [Dim Time].[Month].&[8]);
+//Tính Ride charge theo phương thức thanh toán
+select
+	[Measures].[Ride Charge] on columns,
+	nonempty ([Dim Transaction].[Payment Method].[Payment Method], [Measures].[Ride Charge]) on rows
+from [Olap GK];
+
+// Tính tổng số chuyến đi (Fact Ride Count) theo tháng trong năm 2024
+select 
+	{[Measures].[Fact Ride Count]} on columns,
+	nonempty ([Dim Time].[Month].[Month], [Measures].[Fact Ride Count]) on rows
+from [Olap GK]
+where [Dim Time].[Year].&[2024];
+//Tạo thành viên tính tổng chi phí
+WITH MEMBER [Measures].[Total Revenue] as
+	[Measures].[Ride Charge] + [Measures].[Misc Charge]
+SELECT 
+    {[Measures].[Ride Charge], [Measures].[Misc Charge], [Measures].[Total Revenue]} ON COLUMNS,
+    NONEMPTY(
+        NONEMPTY([Dim Time].[Year].[Year], [Measures].[Ride Charge]), 
+        [Measures].[Misc Charge]
+    ) ON ROWS
+FROM [Olap GK]
